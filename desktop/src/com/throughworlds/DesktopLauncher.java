@@ -2,7 +2,6 @@ package com.throughworlds;
 
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application;
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration;
-import com.throughworlds.Main;
 
 // Please note that on macOS your application needs to be started with the -XstartOnFirstThread JVM argument
 public class DesktopLauncher {
@@ -10,6 +9,8 @@ public class DesktopLauncher {
 		Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
 		config.setForegroundFPS(60);
 		config.setTitle("Through Worlds");
+		config.setFullscreenMode(Lwjgl3ApplicationConfiguration.getDisplayMode());
+		//config.setWindowedMode(1300,750);
 		new Lwjgl3Application(new Main(), config);
 	}
 }
