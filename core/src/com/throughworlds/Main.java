@@ -39,6 +39,7 @@ public class Main extends ApplicationAdapter {
     Color waterColor, dirtColor, sunColor;
     float wetRate, landRate, rainRate, sunRadius = 25, cloudsWidth = 100, cloudsHeight = 15;
     float windX, windY;
+    float gameSpeed = 1;
     int mode = 0;
     float goW = 0, goA = 0, goS = 0, goD = 0, goUp = 0, goDown = 0;
 
@@ -51,7 +52,7 @@ public class Main extends ApplicationAdapter {
         h = Gdx.graphics.getHeight();
         seed = random.nextInt(1000);
 
-        generateLocation(seed);
+        generateLocation(11);
 
 
         Gdx.input.setInputProcessor(new InputProcessor() {
@@ -189,7 +190,7 @@ public class Main extends ApplicationAdapter {
     public void generateLocation(int seed) {
         Random random = new Random(seed);
         waterColor = new Color((random.nextInt(5) + 10) / 100f, (random.nextInt(5) + 10) / 100f, (random.nextInt(6) + 10) / 100f, (random.nextInt(10) + 65) / 100f);
-        dirtColor = new Color((random.nextInt(21) + 18) / 100f, (random.nextInt(22) + 23) / 100f, (random.nextInt(24) + 8) / 100f, 1);
+        dirtColor = new Color((random.nextInt(21) + 18) / 100f, (random.nextInt(22) + 22) / 100f, (random.nextInt(24) + 8) / 100f, 1);
         sunColor = new Color((random.nextInt(22) + 140) / 100f, (random.nextInt(22) + 140) / 100f, (random.nextInt(22) + 140) / 100f, 1);
 
         wetRate = random.nextInt(FZ);
@@ -297,7 +298,7 @@ public class Main extends ApplicationAdapter {
     public void render() {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         ScreenUtils.clear(0, 0, 0, 1);
-        sunRotate += 0.1f;
+        sunRotate += 0.1f*gameSpeed;
         if (sunRotate > 360) {
             sunRotate -= 360;
         }

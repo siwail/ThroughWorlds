@@ -5,8 +5,8 @@ public class WaterPulse {
     int t = 0;
 
     public void math(){
-        s+=p/3.5f;
-        p/=1.1f;
+        s+=p/7.5f;
+        p/=1.05f;
         if (p<=1f){
             t=0;
         }
