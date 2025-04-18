@@ -397,13 +397,27 @@ public class Main extends ApplicationAdapter {
                 }
             }
             if (iz == FZ - 1) {
-                for (int i = 0; i < flowers.length; i += 1) {
+                float scale = sunScale;
+                for (int i = 0; i < flowers.length; i += 1) { // Тени травы
+                    if (flowers[i].t != 0) {
+                        for (int it = 1; it < flowers[i].tq; it += 1) {
+                            dirtPixmap.setColor(0, 0, 0, Math.abs(0.3f*sunScale));
+                            dirtPixmap.drawLine((int) ((flowers[i].x + flowers[i].tx[it]) / s), (int) (FY - (flowers[i].y + flowers[i].ty[it]*scale) / s), (int) ((flowers[i].x + flowers[i].tx[it - 1]) / s), (int) (FY - (flowers[i].y + flowers[i].ty[it - 1]*scale) / s));
+                            if(flowers[i].tt[it]>1||flowers[i].tt[it]<-1){
+                                dirtPixmap.setColor(0, 0, 0, Math.abs(0.3f*sunScale));
+                                dirtPixmap.drawLine((int) ((flowers[i].x + flowers[i].tx[it]) / s), (int) (FY - (flowers[i].y + flowers[i].ty[it]*scale) / s), (int) ((flowers[i].x + flowers[i].tx[it]+sin(65-flowers[i].r*10)*flowers[i].s*flowers[i].tt[it]) / s), (int) (FY - (flowers[i].y + (flowers[i].ty[it - 1]+cos(65-flowers[i].r*10)*flowers[i].s)*scale) / s));
+                            }
+                        }
+                    }
+                }
+
+                for (int i = 0; i < flowers.length; i += 1) { // Трава
                     if (flowers[i].t != 0) {
                         for (int it = 1; it < flowers[i].tq; it += 1) {
                             dirtPixmap.setColor(Math.max(Math.min(dirtColor.r * 1.2f + flowers[i].tt[it] / 50f,1),0), Math.max(Math.min(dirtColor.g * 1.45f + flowers[i].tt[it] / 40f,1),0), Math.max(Math.min(dirtColor.b * 1.15f + flowers[i].tt[it] / 50f,1),0), 1);
                             dirtPixmap.drawLine((int) ((flowers[i].x + flowers[i].tx[it]) / s), (int) (FY - (flowers[i].y + flowers[i].ty[it]) / s), (int) ((flowers[i].x + flowers[i].tx[it - 1]) / s), (int) (FY - (flowers[i].y + flowers[i].ty[it - 1]) / s));
                             if(flowers[i].tt[it]>1||flowers[i].tt[it]<-1){
-                                dirtPixmap.setColor(Math.max(Math.min(dirtColor.r * 1.16f + flowers[i].tt[it] / 45f,1),0), Math.max(Math.min(dirtColor.g * 1.35f + flowers[i].tt[it] / 55f,1),0), Math.max(Math.min(dirtColor.b * 1.05f + flowers[i].tt[it] / 50f,1),0), 1);
+                                dirtPixmap.setColor(Math.max(Math.min(dirtColor.r * 1.12f + flowers[i].tt[it] / 45f,1),0), Math.max(Math.min(dirtColor.g * 1.3f + flowers[i].tt[it] / 55f,1),0), Math.max(Math.min(dirtColor.b * 1.05f + flowers[i].tt[it] / 50f,1),0), 1);
                                 dirtPixmap.drawLine((int) ((flowers[i].x + flowers[i].tx[it]) / s), (int) (FY - (flowers[i].y + flowers[i].ty[it]) / s), (int) ((flowers[i].x + flowers[i].tx[it]+sin(65-flowers[i].r*10)*flowers[i].s*flowers[i].tt[it]) / s), (int) (FY - (flowers[i].y + flowers[i].ty[it - 1]+cos(65-flowers[i].r*10)*flowers[i].s) / s));
                             }
                         }
