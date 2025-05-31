@@ -15,8 +15,8 @@ import java.util.Random;
 
 public class Main extends ApplicationAdapter {
     Random random = new Random(); // Создание генератора случайностей
-    SpriteBatch batch;
-    ShapeRenderer drawer;
+    SpriteBatch batch; // Создание отрисовщика картинок
+    ShapeRenderer drawer; // Создание отрисовщика фигур
     float cx = 0, cy = 0; // Позиция камеры
     float cR = 0; // Поворот камеры
     float ca = 0.66f; // Наклон камеры
@@ -35,7 +35,7 @@ public class Main extends ApplicationAdapter {
     Cloud[] clouds = new Cloud[10];
     Flower[] flowers = new Flower[1000];
     Main m;
-    int seed; // Семя генератора мира
+    int seed; // Сеня генератор мира
     Color waterColor, dirtColor, sunColor;
     float wetRate, landRate, rainRate, sunRadius = 25, cloudsWidth = 100, cloudsHeight = 15;
     float windX, windY;
@@ -52,7 +52,7 @@ public class Main extends ApplicationAdapter {
         h = Gdx.graphics.getHeight();
         seed = random.nextInt(1000);
 
-        generateLocation(11);
+        generateLocation(seed);
 
 
         Gdx.input.setInputProcessor(new InputProcessor() {
@@ -144,8 +144,8 @@ public class Main extends ApplicationAdapter {
                 vy += (goW - goS) * cAccelerate;
                 cx += vx;
                 cy += vy;
-                vx /= 1.15f;
-                vy /= 1.15f;
+                vx /= 1.05f;
+                vy /= 1.05f;
                 if (random.nextInt(25) == 0) {
                     windX = (random.nextInt(11) - 5) / 20f;
                 }
@@ -302,35 +302,36 @@ public class Main extends ApplicationAdapter {
         if (sunRotate > 360) {
             sunRotate -= 360;
         }
-        float sunX = (cx + w / 2) / s;
-        float sunY = FY - (cy + h / 2) / s + sin(sunRotate) * (h / s);
-        float sunScale = sin(sunRotate - 90);
-        float sunRadius = (sunScale + 0.5f) * this.sunRadius;
-        float cx = this.cx, cy = this.cy;
-        float dark = (sunScale + 1.35f);
-        float redTimeColor = 0.12f * Math.max(sunScale, 0);
+        float sunX = (cx + w / 2) / s; // Координата солнца по X
+        float sunY = FY - (cy + h / 2) / s + sin(sunRotate) * (h / s); // Координата солнца по Y (Зависит от текущего поворота)
+        float sunScale = sin(sunRotate - 90); // Размер солнца
+        float sunRadius = (sunScale + 0.5f) * this.sunRadius; // Радиус солнца
+        float cx = this.cx, cy = this.cy; // Ускоряем доступ к позиции камеры
+        float dark = (sunScale + 1.35f); // Настройки уровня освещённости
+        float redTimeColor = 0.12f * Math.max(sunScale, 0);  // Настройки цвета в зависимости от времени суток
         float greenTimeColor = 0.15f * Math.max(sunScale, 0);
         float blueTimeColor = 0.25f * Math.max(1 - sunScale, 0);
         batch.setColor(sunColor.r * dark + redTimeColor, sunColor.g * dark + greenTimeColor, sunColor.b * dark + blueTimeColor, 1);
         batch.begin();
-        float waterSplash, waterR, waterG, waterB;
-        Pixmap dirtPixmap = new Pixmap(FX, FY, Pixmap.Format.RGBA8888), waterPixmap = new Pixmap(FX, FY, Pixmap.Format.RGBA8888);
-        for (int iz = 0; iz < FZ; iz++) {
-            if (iz == wetRate) {
+        float waterSplash, waterR, waterG, waterB; // Параметры воды
+        Texture waterTexture, dirtTexture; // Заранее объявляем текстуру воды, текстуру земли
+        Pixmap dirtPixmap = new Pixmap(FX, FY, Pixmap.Format.RGBA8888), waterPixmap = new Pixmap(FX, FY, Pixmap.Format.RGBA8888); // Создаём пиксмап земли, пиксмап воды
+        for (int iz = 0; iz < FZ; iz++) { // Перебор уровней земли
+            if (iz == wetRate) { // Выполняется в том случае, если текущий уровень совпадает с уровнем воды
                 int minX = Math.max((int) (cx / s), 0);
                 int maxY = FY - Math.max((int) (cy / s), 0);
                 int maxX = Math.min((int) ((cx + w) / s), FX - 1);
                 int minY = FY - Math.min((int) ((cy + h) / s), FY - 1);
                 for (int ix = minX; ix < maxX; ix++) {
                     for (int iy = minY; iy < maxY; iy++) {
-                        if (F[ix][iy][iz].t == 2) {
+                        if (F[ix][iy][iz].t == 2) { // Если на данном пикселе расположена вода
                             Field f = F[ix][iy][iz];
                             waterSplash = 0;
                             waterR = 0;
                             waterG = 0;
                             waterB = 0;
                             float q = 0;
-                            for (int i = 0; i < waterPulses.length; i += 1) {
+                            for (int i = 0; i < waterPulses.length; i += 1) { // Перебираем водные пульсации
                                 if (waterPulses[i].t != 0 && hit(ix, iy, waterPulses[i].x, waterPulses[i].y, 1, waterPulses[i].s)) {
                                     q += 1;
                                     float d = distance(ix, iy, waterPulses[i].x, waterPulses[i].y);
@@ -338,7 +339,7 @@ public class Main extends ApplicationAdapter {
                                     waterSplash += (d) * k / 100f * ((waterPulses[i].p - 1) / waterPulses[i].startPower);
                                 }
                             }
-                            if (hit(ix, iy, sunX, sunY, 1, sunRadius)) {
+                            if (hit(ix, iy, sunX, sunY, 1, sunRadius)) { // Проверяем столкновения с солнцем
                                 float d = distance(ix, iy, sunX, sunY);
                                 //Gdx.app.log("d", ""+d);
                                 if (d > sunRadius * 0.65f) {
@@ -351,7 +352,7 @@ public class Main extends ApplicationAdapter {
                                     waterB += sunColor.b / 4f;
                                 }
                             }
-                            for (int i = 0; i < clouds.length; i += 1) {
+                            for (int i = 0; i < clouds.length; i += 1) {  // Перебираем облака
                                 if (clouds[i].t != 0 && hit(ix, iy, cx / s + clouds[i].x + cloudsWidth / 2f, FY - ((cy + h) / s) + clouds[i].y, 1, cloudsWidth)) {
                                     for (int it = 0; it < clouds[i].tq; it++) {
                                         if (hit(ix, iy, cx / s + clouds[i].x + cloudsWidth / clouds[i].tq * it, FY - ((cy + h) / s) + clouds[i].y, 1, clouds[i].ts[it])) {
@@ -366,11 +367,11 @@ public class Main extends ApplicationAdapter {
                                 waterSplash /= q;
                             }
                             waterPixmap.setColor((f.r + waterR) + waterSplash, (f.g + waterG) + waterSplash, (f.b + waterB) + waterSplash, (f.a));
-                            waterPixmap.drawPixel(ix, iy);
+                            waterPixmap.drawPixel(ix, iy); // Отрисовываем результат
                         }
                     }
                 }
-                for (int i = 0; i < flowers.length; i += 1) {
+                for (int i = 0; i < flowers.length; i += 1) { // Перебираем цветы (рисуем их отражения в воде)
                     if (flowers[i].t != 0) {
                         for (int it = 1; it < flowers[i].tq; it += 1) {
                             waterPixmap.setColor(Math.max(Math.min(dirtColor.r * 1.2f + flowers[i].tt[it] / 50f,1),0), Math.max(Math.min(dirtColor.g * 1.45f + flowers[i].tt[it] / 40f,1),0), Math.max(Math.min(dirtColor.b * 1.15f + flowers[i].tt[it] / 50f,1),0), 0.25f);
@@ -381,24 +382,20 @@ public class Main extends ApplicationAdapter {
                             }
                         }
                     }
+
                 }
-            }
-            if (iz == wetRate) {
-                Texture waterTexture = new Texture(waterPixmap);
-                batch.draw(waterTexture, -cx, -cy, FX * s, FY * s);
-                batch.end();
-                waterTexture.dispose();
-                waterPixmap.dispose();
-                batch.begin();
+                waterTexture = new Texture(waterPixmap); // Создаём текстуру воды
+                batch.draw(waterTexture, -cx, -cy, FX * s, FY * s); // Рисуем воду
             }
 
-            for (int x = 0; x < S.length; x += 1) {
+            for (int x = 0; x < S.length; x += 1) { // Отрисовываем текущий сегмент земли по координатам (X, Y, Z)
                 for (int y = 0; y < S[x].length; y += 1) {
                     batch.draw(S[x][y][iz], -cx + x * segments * s, -cy + y * segments * s, s * segments, s * segments);
                 }
             }
-            if (iz == FZ - 1) {
-                float scale = sunScale;
+            if (iz == FZ - 1) { // На самом верхнем уровне земли отрисовываем всё остальное
+
+                /*float scale = sunScale;
                 for (int i = 0; i < flowers.length; i += 1) { // Тени травы
                     if (flowers[i].t != 0) {
                         for (int it = 1; it < flowers[i].tq; it += 1) {
@@ -410,7 +407,7 @@ public class Main extends ApplicationAdapter {
                             }
                         }
                     }
-                }
+                }*/
 
                 for (int i = 0; i < flowers.length; i += 1) { // Трава
                     if (flowers[i].t != 0) {
@@ -424,24 +421,20 @@ public class Main extends ApplicationAdapter {
                         }
                     }
                 }
-            }
-            if (iz == FZ - 1) {
-                Texture dirtTexture = new Texture(dirtPixmap);
-                batch.draw(dirtTexture, -cx, -cy, FX * s, FY * s);
+                dirtTexture = new Texture(dirtPixmap); // Создаём текстуру земли на основе пиксмапа
+                batch.draw(dirtTexture, -cx, -cy, FX * s, FY * s); // Отрисовываем текстуру земли.
                 batch.end();
-                dirtTexture.dispose();
+
+                waterPixmap.dispose(); // Удаляем ненужные текстуры и пиксмапы в конце
                 dirtPixmap.dispose();
-                batch.begin();
+                waterTexture.dispose();
+                dirtTexture.dispose();
             }
         }
-
-        batch.end();
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         drawer.begin(ShapeRenderer.ShapeType.Filled);
-
-
-        for (int i = 0; i < parts.length; i += 1) {
+        for (int i = 0; i < parts.length; i += 1) { // Отрисовка водных капель (дождь)
             if (parts[i].t != 0) {
                 for (int it = 1; it < parts[i].tq - parts[i].state; it++) {
                     float size = Math.max((parts[i].s) * (1 - (float) it / parts[1].tq), 2);
@@ -454,7 +447,7 @@ public class Main extends ApplicationAdapter {
         Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 
-    public void setWaterPulse(float x, float y, float power) {
+    public void setWaterPulse(float x, float y, float power) { // Размещает частицу водной пульсации, если есть свободная
         int index = -1;
         for (int i = 0; i < waterPulses.length; i += 1) {
             if (waterPulses[i].t == 0) {
@@ -472,7 +465,7 @@ public class Main extends ApplicationAdapter {
         }
     }
 
-    public void setWaterPart(float x, float y) {
+    public void setWaterPart(float x, float y) {  // Размещает частицу воды, если есть свободный
         int index = -1;
         for (int i = 0; i < parts.length; i += 1) {
             if (parts[i].t == 0) {
@@ -498,7 +491,7 @@ public class Main extends ApplicationAdapter {
         }
     }
 
-    public void setCloud(float x, float y) {
+    public void setCloud(float x, float y) {  // Размещает облако, если есть свободное
         int index = -1;
         for (int i = 0; i < clouds.length; i += 1) {
             if (clouds[i].t == 0) {
@@ -521,7 +514,7 @@ public class Main extends ApplicationAdapter {
         }
     }
 
-    public void setFlower(float x, float y) {
+    public void setFlower(float x, float y) { // Размещает цветок, если есть свободный
         int index = -1;
         for (int i = 0; i < flowers.length; i += 1) {
             if (flowers[i].t == 0) {
@@ -544,27 +537,27 @@ public class Main extends ApplicationAdapter {
         }
     }
 
-    public boolean hit(float x1, float y1, float x2, float y2, float r1, float r2) {
+    public boolean hit(float x1, float y1, float x2, float y2, float r1, float r2) { // Проверяет, соприкасаются ли окружности
         float dx = x1 - x2;
         float dy = y1 - y2;
         return Math.sqrt(dx * dx + dy * dy) <= r1 + r2;
     }
 
-    public float distance(float x1, float y1, float x2, float y2) {
+    public float distance(float x1, float y1, float x2, float y2) { // Принимает координаты двух точек, возвращает расстояние в float
         float dx = x1 - x2;
         float dy = y1 - y2;
         return (float) Math.sqrt(dx * dx + dy * dy);
     }
 
-    public float sin(float v) {
+    public float sin(float v) {  // Принимает градусы, возвращает значение косинуса в float
         return (float) Math.sin(v * Math.PI / 180f);
     }
 
-    public float cos(float v) {
+    public float cos(float v) {  // Принимает градусы, возвращает значение косинуса в float
         return (float) Math.cos(v * Math.PI / 180f);
     }
 
-    public boolean act(float x, float y) {
+    public boolean act(float x, float y) { // Проверяет, актуальна ли данная ячейка
         return x > -1 && x < FX && y > -1 && y < FY;
     }
 }
