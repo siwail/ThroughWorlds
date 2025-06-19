@@ -56,14 +56,60 @@ public class Main extends ApplicationAdapter {
     float rotateAnim = 0;
     ThroughServerPacket initializationData;
 
+    Texture[][] head = new Texture[1][4];
+    Texture[][] hair = new Texture[1][4];
+    Texture[][] hat = new Texture[1][4];
+    Texture[][] beard = new Texture[1][4];
+    Texture[][] eyes = new Texture[1][4];
+
+    Texture[][] prop = new Texture[1][4];
+
     @Override
     public void create() {
+
+        for(int i=0;i<head.length;i++){
+            head[i][0] = new Texture("person/head_"+i+"_left.png");
+            head[i][1] = new Texture("person/head_"+i+".png");
+            head[i][2] = new Texture("person/head_"+i+"_back.png");
+            head[i][3] = new Texture("person/head_"+i+"_right.png");
+        }
+        for(int i=0;i<hair.length;i++){
+            hair[i][0] = new Texture("person/hair_"+i+"_left.png");
+            hair[i][1] = new Texture("person/hair_"+i+".png");
+            hair[i][2] = new Texture("person/hair_"+i+"_back.png");
+            hair[i][3] = new Texture("person/hair_"+i+"_right.png");
+        }
+        for(int i=0;i<hat.length;i++){
+            hat[i][0] = new Texture("person/hat_"+i+"_left.png");
+            hat[i][1] = new Texture("person/hat_"+i+".png");
+            hat[i][2] = new Texture("person/hat_"+i+"_back.png");
+            hat[i][3] = new Texture("person/hat_"+i+"_right.png");
+        }
+        for(int i=0;i<beard.length;i++){
+            beard[i][0] = new Texture("person/beard_"+i+"_left.png");
+            beard[i][1] = new Texture("person/beard_"+i+".png");
+            beard[i][2] = new Texture("person/beard_"+i+"_back.png");
+            beard[i][3] = new Texture("person/beard_"+i+"_right.png");
+        }
+        for(int i=0;i<eyes.length;i++){
+            eyes[i][0] = new Texture("person/eyes_"+i+"_left.png");
+            eyes[i][1] = new Texture("person/eyes_"+i+".png");
+            eyes[i][2] = new Texture("person/eyes_"+i+"_back.png");
+            eyes[i][3] = new Texture("person/eyes_"+i+"_right.png");
+        }
+        for(int i=0;i<prop.length;i++){
+            prop[i][0] = new Texture("person/prop_"+i+"_left.png");
+            prop[i][1] = new Texture("person/prop_"+i+".png");
+            prop[i][2] = new Texture("person/prop_"+i+"_back.png");
+            prop[i][3] = new Texture("person/prop_"+i+"_right.png");
+        }
+
         m = this;
         batch = new SpriteBatch();
         drawer = new ShapeRenderer();
         w = Gdx.graphics.getWidth();
         h = Gdx.graphics.getHeight();
-        generator = new FreeTypeFontGenerator(Gdx.files.internal("font.ttf"));
+        generator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/font.ttf"));
         parameter.characters = "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890[]-=_+./#$%?!";
         for (int i = 0; i < font.length; i++) {
             parameter.size = (int) (4f + i * 3.1f);
@@ -72,11 +118,11 @@ public class Main extends ApplicationAdapter {
             parameter.color = new Color(1, 1, 1, 1);
             font[i] = generator.generateFont(parameter);
         }
-        cat = new Texture("cat.png");
+        cat = new Texture("trash/cat.png");
         cat.getTextureData().prepare();
         catPixmap = cat.getTextureData().consumePixmap();
 
-        shadow = new Texture("shadow.png");
+        shadow = new Texture("trash/shadow.png");
         if (online) {
             Thread clientThread = new Thread(() -> {
                 ThroughClient client = new ThroughClient(m);
@@ -95,8 +141,9 @@ public class Main extends ApplicationAdapter {
                 p[i].cr = random.nextInt(255) / 255f;
                 p[i].cg = random.nextInt(255) / 255f;
                 p[i].cb = random.nextInt(255) / 255f;
-                p[i].name = "BOT #"+i;
+                p[i].name = "MEGABOT #"+i;
                 p[i].nameT = random.nextInt(2);
+                p[i].generate(random.nextInt(1000));
             }
             pid = 0;
             initialized = true;
@@ -392,7 +439,7 @@ public class Main extends ApplicationAdapter {
             generateWay(random,  FX/2f, FY/2f, FX-FX/8f, FY / 2f, 12, -0.15f);
             generateWay(random,  FX/2f, FY/2f, FX/8f, FY / 2f, 12, -0.15f);
             generateWay(random,  FX/2f, FY/2f, FX/2f, FY-FY/8f, 12, -0.15f);
-
+            
 
             generatePlast(random, FX/2f, FY/2f, 21, 0.25f);
             generateWay(random,  FX/2f, FY/2f, FX-FX/8f, FY / 2f, 9, 0.25f);
@@ -420,13 +467,15 @@ public class Main extends ApplicationAdapter {
                                     pixmap.setColor(f.r, f.g, f.b, 1);
                                     pixmap.drawPixel(ix - x * segments, segments - 1 - (iy - y * segments));
                                 } else {
-                                    if (iz == wetRate) {
+                                    if (iz == (int)wetRate) {
                                         F[ix][iy][iz].t = 2;
                                         F[ix][iy][iz].m = 0.5f;
                                         F[ix][iy][iz].a = waterColor.a;
                                         F[ix][iy][iz].r = (waterColor.r);
                                         F[ix][iy][iz].g = (waterColor.g);
                                         F[ix][iy][iz].b = (waterColor.b);
+                                        //pixmap.setColor(1, 1, 1, 0);
+                                        //pixmap.drawPixel(ix - x * segments, segments - 1 - (iy - y * segments));
                                     }
                                 }
                             }
@@ -464,7 +513,6 @@ public class Main extends ApplicationAdapter {
         }
         //
     }
-
     @Override
     public void render() {
         if (!initialized) {
@@ -483,8 +531,6 @@ public class Main extends ApplicationAdapter {
         if (sunRotate > 360) {
             sunRotate -= 360;
         }
-
-        //k = 1.25f;
 
         cx += (p[pid].x - w / 2f - cx) / 10f;
         cy += (p[pid].y - h / 2f - cy) / 10f;
@@ -511,51 +557,32 @@ public class Main extends ApplicationAdapter {
         int maxX = Math.min((int) ((cx + w) / s), FX - 1);
         int maxY = Math.min((int) ((cy + h) / s), FY - 1);
         for (int iz = 0; iz < FZ; iz++) { // Перебор уровней земли
-            if (iz == wetRate) { // Выполняется в том случае, если текущий уровень совпадает с уровнем воды
-
+            if (iz == (int)wetRate) { // Выполняется в том случае, если текущий уровень совпадает с уровнем воды
                 for(int i=0;i<pq;i++){ // Перебираем и отрисовываем отражения персонажей
                     p[i].drawMirror();
                 }
-
                 for (int ix = minX; ix < maxX; ix++) {
                     for (int fy = minY; fy < maxY; fy++) {
-                        int iy = FY - 1 - fy;
-                        if (F[ix][iy][iz].t == 2) { // Если на данном пикселе расположена вода F[ix][iy][iz].t == 2
+                        int iy = fy;
+                        if (F[ix][iy][iz].t== 2) { // Если на данном пикселе расположена вода F[ix][iy][iz].t == 2
                             Field f = F[ix][iy][iz];
                             waterSplash = 0;
                             waterR = 0;
                             waterG = 0;
                             waterB = 0;
-                            float q = 0;
-                           /*
-                             if(!act(ix,iy+1)||F[ix][iy+1][iz].t!=2){
-                                waterR+=(cos(sunRotate*5f))/10f+waterColor.r/2f;
-                                waterG+=(cos(sunRotate*5f))/10f+waterColor.r/2f;
-                                waterB+=(cos(sunRotate*5f))/10f+waterColor.r/2f;
-                            }*/
-
-                            /*
-
-
-                            if (q > 0) {
-                                waterSplash /= q;
-                            }*/
                             float scale = +sin(sunRotate * 10 + ix + iy) / 50f;
-                            waterPixmap.setColor((f.r + waterR) + waterSplash + scale, (f.g + waterG) + waterSplash + scale, (f.b + waterB) + waterSplash + scale, (f.a));
-                            waterPixmap.drawPixel(ix, iy); // Отрисовываем результат
+                            waterPixmap.setColor((f.r + waterR) + waterSplash + scale, (f.g + waterG) + waterSplash + scale, (f.b + waterB) + waterSplash + scale, f.a);
+                            //waterPixmap.setColor(1,1,1,1);
+                            waterPixmap.drawPixel(ix, FY-iy-1); // Отрисовываем результат
                         }
                     }
                 }
                 float r = 0.4f;
-
                 waterPixmap.setBlending(Pixmap.Blending.None);
-
                 waterPixmap.setColor(sunColor.r, sunColor.g, sunColor.b, 0.14f); // Солнце рисуем
                 waterPixmap.fillCircle((int) sunX, (int) sunY, (int) (sunRadius * r * 1.25f));
                 waterPixmap.setColor(sunColor.r, sunColor.g, sunColor.b, 0.38f);
                 waterPixmap.fillCircle((int) sunX, (int) sunY, (int) (sunRadius * r));
-
-
                 for (int i = 0; i < clouds.length; i += 1) {  // Перебираем облака
                     if (clouds[i].t != 0) {
                         for (int it = 0; it < clouds[i].tq; it++) {
@@ -596,7 +623,6 @@ public class Main extends ApplicationAdapter {
                 }
             }
         }
-
         for (int i = 0; i < flowers.length; i += 1) { // Перебираем и отрисовываем цветы
             if (flowers[i].t != 0) {
                 for (int it = 1; it < flowers[i].tq; it += 1) {
@@ -609,7 +635,6 @@ public class Main extends ApplicationAdapter {
                 }
             }
         }
-
         dirtTexture = new Texture(dirtPixmap); // Создаём текстуру земли на основе пиксмапа
         batch.draw(dirtTexture, -cx, -cy, FX * s, FY * s); // Отрисовываем текстуру земли.
         for (int i = 0; i < pq; i += 1) {
@@ -619,16 +644,13 @@ public class Main extends ApplicationAdapter {
             p[i].drawBar();
         }
         batch.end();
-
         waterPixmap.dispose(); // Удаляем ненужные текстуры и пиксмапы в конце
         dirtPixmap.dispose();
         waterTexture.dispose();
         dirtTexture.dispose();
-
         Gdx.gl.glEnable(GL20.GL_BLEND); // Переходим к отрисовке геометрических фигур
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         drawer.begin(ShapeRenderer.ShapeType.Filled);
-
         for (int i = 0; i < parts.length; i += 1) { // Отрисовка водных капель (дождь)
             if (parts[i].t != 0) {
                 for (int it = 1; it < parts[i].tq - parts[i].state; it++) {
@@ -707,10 +729,8 @@ public class Main extends ApplicationAdapter {
             for (int it = clouds[index].tq - 1; it >= 0; it--) {
                 clouds[index].ts[it] = random.nextInt((int) cloudsHeight) + 2;
             }
-
         }
     }
-
     public void setFlower(float x, float y) { // Размещает цветок, если есть свободный
         int index = -1;
         for (int i = 0; i < flowers.length; i += 1) {
@@ -730,11 +750,8 @@ public class Main extends ApplicationAdapter {
                 flowers[index].tt[it] = random.nextInt(11) - 5;
                 flowers[index].ty[it] = it * s;
             }
-
         }
     }
-
-
     public boolean hit(float x1, float y1, float x2, float y2, float r1, float r2) { // Проверяет, соприкасаются ли окружности
         float dx = x1 - x2;
         float dy = y1 - y2;

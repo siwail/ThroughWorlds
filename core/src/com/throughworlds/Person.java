@@ -1,6 +1,8 @@
 package com.throughworlds;
 
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 import java.util.Random;
@@ -12,14 +14,15 @@ public class Person extends Entity {
     float health = 0;
     float lastHealth = 0;
     float maxHealth = 100;
-
+    int seed = 0;
     String name = "";
     int nameT; // Тип имени (шутливое, сгенерированное)
 
     float skinR, skinG, skinB; // Цвет кожи
+    int headT; // Тип головы
 
-    float eyeR, eyeG, eyeB; // Цвет глаз
-    int eyeT; // Тип глаз
+    float eyesR, eyesG, eyesB; // Цвет глаз
+    int eyesT; // Тип глаз
 
     float hairR, hairG, hairB; // Цвет волос
     int hairT; // Тип волос
@@ -50,6 +53,14 @@ public class Person extends Entity {
 
     float bootR, bootG, bootB; // Цвет обуви
     int bootT; // Тип обуви
+
+    int dir = 0;
+    Texture[] head = new Texture[4];
+    Texture[] eyes = new Texture[4];
+    Texture[] hat = new Texture[4];
+    Texture[] beard = new Texture[4];
+    Texture[] prop = new Texture[4];
+    Texture[] hair = new Texture[4];
 
     public Person(Main m, float x, float y, float z) {
         super(m, x, y, z);
@@ -102,25 +113,86 @@ public class Person extends Entity {
 
     public void draw() {
         float cx = m.cx, cy = m.cy;
-        lastHealth += (health - lastHealth) / 40f;
-        mx += (x - mx) / 3f;
-        my += (y - my) / 3f;
-        mz += (z - mz) / 3f;
-        r = (mz * 1.5f);
-        m.batch.draw(m.shadow, -cx + mx - s - mz / 12f, -cy + my - s - s / 3f - mz / 12f, s * 2 + mz / 6f, s * 2 + mz / 6f);
+
+        m.batch.end();
+        m.drawer.begin(ShapeRenderer.ShapeType.Filled);
+        m.drawer.setColor(skinR/2f, skinG/2f, skinB/2f, 1);
+        m.drawer.rectLine(-cx+mx, -cy+my+mz, -cx+mx, -cy+my+mz-s*2f, 5);
+        m.drawer.setColor(skinR/1.5f, skinG/1.5f, skinB/1.5f, 1);
+        m.drawer.rectLine(-cx+mx, -cy+my+mz-s, -cx+mx-s/2f, -cy+my+mz-s, 4);
+        m.drawer.rectLine(-cx+mx, -cy+my+mz-s, -cx+mx+s/2f, -cy+my+mz-s, 4);
+        m.drawer.end();
+        m.batch.begin();
+        m.batch.draw(head[dir], -cx+mx-s/2f, -cy+my+mz-s/2f, s, s);
+        m.batch.draw(eyes[dir], -cx+mx-s/2f, -cy+my+mz-s/2f, s, s);
+        if(beardT!=-1) {
+            m.batch.draw(beard[dir], -cx + mx - s, -cy + my + mz - s, s * 2, s * 2);
+        }
+        if(propT!=-1) {
+            m.batch.draw(prop[dir], -cx + mx - s / 2f, -cy + my + mz - s / 2f, s, s);
+        }
+        if(hatT!=-1) {
+            m.batch.draw(hat[dir], -cx + mx - s, -cy + my + mz - s, s * 2, s * 2);
+        }else{
+            m.batch.draw(hair[dir], -cx + mx - s, -cy + my + mz - s, s * 2, s * 2);
+        }
+       /* m.batch.draw(m.shadow, -cx + mx - s - mz / 12f, -cy + my - s - s / 3f - mz / 12f, s * 2 + mz / 6f, s * 2 + mz / 6f);
         m.batch.setColor(cr, cg, cb, 1);
         m.batch.draw(new TextureRegion(m.cat), -cx + mx - s + vz / 2f - Math.abs(vx) / 2f, -cy + my - s + mz, (s * 2 - vz + Math.abs(vx)) / 2f, (s * 2 + vz) / 2f, s * 2 - vz + Math.abs(vx), s * 2 + vz, 1, 1, r);
-        m.batch.setColor(1, 1, 1, 1);
+        m.batch.setColor(1, 1, 1, 1);*/
 
     }
 
     public void drawMirror() {
         float cx = m.cx, cy = m.cy;
-
+        float size = s*4;
+        lastHealth += (health - lastHealth) / 40f;
+        mx += (x - mx) / 3f;
+        my += (y - my) / 3f;
+        mz += (z - mz) / 3f;
+        r = (mz * 1.5f);
+        if(Math.abs(vx)>Math.abs(vy)){
+            if(vx<0) {
+                dir = 0;
+            }else {
+                dir = 3;
+            }
+        }
+        if(Math.abs(vx)<Math.abs(vy)){
+            if(vy<0) {
+                dir = 1;
+            }else {
+                dir = 2;
+            }
+        }
         //m.batch.draw(m.shadow, -cx+mx-s-mz/12f, -cy+my-s-s/3f-mz/12f, s*2+mz/6f,s*2+mz/6f);
-        m.batch.setColor(cr, cg, cb, 0.45f);
+        /*m.batch.setColor(cr, cg, cb, 0.45f);
         m.batch.draw(new TextureRegion(m.cat), -cx + mx - s + vz / 2f - Math.abs(vx) / 2f, -cy + my - s - mz - (s * 2 + vz) * 0.8f, (s * 2 - vz + Math.abs(vx)) / 2f, (s * 2 + vz) / 2f, s * 2 - vz + Math.abs(vx), s * 2 + vz, 1, -1, -r);
-        m.batch.setColor(1, 1, 1, 1);
+        m.batch.setColor(1, 1, 1, 1);*/
+        m.batch.end();
+        m.drawer.begin(ShapeRenderer.ShapeType.Filled);
+        m.drawer.setColor(skinR/2f, skinG/2f, skinB/2f, 1);
+        m.drawer.rectLine(-cx+mx, -cy+my-(mz)-size, -cx+mx, -cy+my-(mz-s*2f)-size, 5);
+        m.drawer.setColor(skinR/1.5f, skinG/1.5f, skinB/1.5f, 1);
+        m.drawer.rectLine(-cx+mx, -cy+my-(mz-s)-size, -cx+mx-s/2f, -cy+my-(mz-s)-size, 4);
+        m.drawer.rectLine(-cx+mx, -cy+my-(mz-s)-size, -cx+mx+s/2f, -cy+my-(mz-s)-size, 4);
+        m.drawer.end();
+        m.batch.begin();
+        m.batch.draw(head[dir], -cx+mx-s/2f, -cy+my-(mz-s/2f)-size, s, -s);
+
+            m.batch.draw(eyes[dir], -cx + mx - s / 2f, -cy + my - (mz - s / 2f) - size, s, -s);
+        if(beardT!=-1) {
+            m.batch.draw(beard[dir], -cx + mx - s, -cy + my - (mz - s) - size, s * 2, -s * 2);
+        }
+
+         if(propT!=-1) {
+            m.batch.draw(prop[dir], -cx+mx-s/2f, -cy+my-(mz-s/2f)-size, s, -s);
+         }
+        if(hatT!=-1) {
+            m.batch.draw(hat[dir], -cx + mx - s, -cy + my - (mz - s) - size, s * 2, -s * 2);
+        }else{
+            m.batch.draw(hair[dir], -cx + mx - s, -cy + my - (mz - s) - size, s * 2, -s * 2);
+        }
 
     }
 
@@ -214,18 +286,24 @@ public class Person extends Entity {
         }
 
         if (dressMode == 0) { // Хаотичные цвета одежды
-            skinR = color(random, 210, 15);
-            skinG = color(random, 210, 15);
-            skinB = color(random, 210, 15);
+            skinR = color(random, 210, 55);
+            skinG = color(random, 210, 55);
+            skinB = color(random, 210, 55);
             hairR = color(random, 210, 15);
             hairG = color(random, 210, 15);
             hairB = color(random, 210, 15);
-            eyeR = color(random, 210, 15);
-            eyeG = color(random, 210, 15);
-            eyeB = color(random, 210, 15);
-            beardR = color(random, 210, 15);
-            beardG = color(random, 210, 15);
-            beardB = color(random, 210, 15);
+            eyesR = color(random, 210, 15);
+            eyesG = color(random, 210, 15);
+            eyesB = color(random, 210, 15);
+            if (random.nextInt(3) == 0) {
+                beardR = color(random, 210, 15);
+                beardG = color(random, 210, 15);
+                beardB = color(random, 210, 15);
+            } else {
+                beardR = hairR;
+                beardG = hairG;
+                beardB = hairB;
+            }
             propR = color(random, 210, 15);
             propG = color(random, 210, 15);
             propB = color(random, 210, 15);
@@ -270,13 +348,19 @@ public class Person extends Entity {
             hairG = solidColor(random, cp, dark);
             hairB = solidColor(random, cp, dark);
             dark = (random.nextInt(50) - 25) / 255f;
-            eyeR = solidColor(random, cp, dark);
-            eyeG = solidColor(random, cp, dark);
-            eyeB = solidColor(random, cp, dark);
-            dark = (random.nextInt(50) - 25) / 255f;
-            beardR = solidColor(random, cp, dark);
-            beardG = solidColor(random, cp, dark);
-            beardB = solidColor(random, cp, dark);
+            eyesR = solidColor(random, cp, dark);
+            eyesG = solidColor(random, cp, dark);
+            eyesB = solidColor(random, cp, dark);
+            if (random.nextInt(3) == 0) {
+                dark = (random.nextInt(50) - 25) / 255f;
+                beardR = solidColor(random, cp, dark);
+                beardG = solidColor(random, cp, dark);
+                beardB = solidColor(random, cp, dark);
+            } else {
+                beardR = hairR;
+                beardG = hairG;
+                beardB = hairB;
+            }
             dark = (random.nextInt(50) - 25) / 255f;
             propR = solidColor(random, cp, dark);
             propG = solidColor(random, cp, dark);
@@ -310,18 +394,39 @@ public class Person extends Entity {
             bootG = solidColor(random, cp, dark);
             bootB = solidColor(random, cp, dark);
         }
-
-        eyeT = 0;
+        headT = 0;
+        eyesT = 0;
         hairT = 0;
-        beardT = 0;
-        propT = 0;
-        hatT = 0;
+        beardT = random.nextInt(2)-1;
+        propT = random.nextInt(2)-1;
+        hatT = random.nextInt(2)-1;
         dressT = 0;
         bodyT = 0;
         handT = 0;
         gloverT = 0;
         legT = 0;
         bootT = 0;
+        for (int i = 0; i < 4; i++) {
+            if(headT!=-1) {
+                head[i] = colorize(m.head[headT][i], skinR, skinG, skinB);
+            }
+            if(hatT!=-1) {
+                hat[i] = colorize(m.hat[hatT][i], hatR, hatG, hatB);
+            }
+            if(propT!=-1) {
+                prop[i] = colorize(m.prop[propT][i], propR, propG, propB);
+            }
+            if(eyesT!=-1) {
+                eyes[i] = colorize(m.eyes[eyesT][i], eyesR, eyesG, eyesB);
+            }
+            if(hairT!=-1) {
+                hair[i] = colorize(m.hair[hairT][i], hairR, hairG, hairB);
+            }
+            if(beardT!=-1) {
+                beard[i] = colorize(m.beard[beardT][i], beardR, beardG, beardB);
+            }
+        }
+
     }
 
     public float color(Random random, int a, int b) { // Генерация цвета с ограничениями
@@ -329,6 +434,43 @@ public class Person extends Entity {
     }
 
     public float solidColor(Random random, float[] cp, float dark) { // Генерация цвета с ограничениями
-        return Math.min(Math.max(((random.nextInt((int) cp[random.nextInt(cp.length)])) / 255f + dark), 0), 1);
+        return minmax(random.nextInt((int) (cp[random.nextInt(cp.length)]*255f)) / 255f + dark, 0, 1);
+    }
+
+    public Texture colorize(Texture texture, float r, float g, float b) {
+        if(!texture.getTextureData().isPrepared()){
+            texture.getTextureData().prepare();
+        }
+        Pixmap pixmap = texture.getTextureData().consumePixmap();
+        float w = pixmap.getWidth();
+        float h = pixmap.getHeight();
+        float medium;
+        float normal = 0;
+        Color c;
+        int q = 0;
+        for (int ix = 0; ix < w; ix++) {
+            for (int iy = 0; iy < h; iy++) {
+                c = new Color(pixmap.getPixel(ix, iy));
+                if(c.a!=0) {
+                    normal += (c.r + c.g + c.b) / 3f;
+                    q++;
+                }
+            }
+        }
+        normal/=q;
+        for (int ix = 0; ix < w; ix++) {
+            for (int iy = 0; iy < h; iy++) {
+                c = new Color(pixmap.getPixel(ix, iy));
+                medium = (c.r + c.g + c.b) / 3f;
+                medium-=(normal-medium)/5f;
+                pixmap.setColor(medium * r, medium * g, medium * b, c.a);
+                pixmap.drawPixel(ix, iy);
+            }
+        }
+        return new Texture(pixmap);
+    }
+
+    public float minmax(float v, float min, float max) {
+        return Math.min(Math.max(v, min), max);
     }
 }

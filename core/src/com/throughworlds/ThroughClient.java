@@ -16,15 +16,11 @@ import java.nio.charset.StandardCharsets;
 public class ThroughClient {
     String ip = "79.174.83.171";
     int port = 4555;
-
-
     Main m;
     boolean run = true;
-
     public ThroughClient(Main main) {
         m = main;
     }
-
     public void start() throws IOException {
         Socket socket = new Socket(ip, port);
         Gdx.app.log("CLIENT", "CONNECTED TO ADDRESS " + ip + ":" + port);
