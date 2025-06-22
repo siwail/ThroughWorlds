@@ -64,9 +64,10 @@ public class Main extends ApplicationAdapter {
 
     Texture[][] prop = new Texture[1][4];
 
+    Animation[] animations = new Animation[2];
     @Override
     public void create() {
-
+        animations[0] = new Animation("run");
         for(int i=0;i<head.length;i++){
             head[i][0] = new Texture("person/head_"+i+"_left.png");
             head[i][1] = new Texture("person/head_"+i+".png");

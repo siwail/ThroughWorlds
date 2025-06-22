@@ -30,7 +30,7 @@ public class ThroughServer {
 
     public void start() throws IOException, InterruptedException {
         readNames();
-        ServerSocket server = new ServerSocket(5269);
+        ServerSocket server = new ServerSocket(4555);
         System.out.println("[SERVER] STARTED");
         seed = random.nextInt(100000);
         while (run) {
@@ -47,7 +47,7 @@ public class ThroughServer {
 
     public void readNames(){
         String names = "";
-        try(@SuppressWarnings("NewApi") BufferedReader in = new BufferedReader(
+        try(BufferedReader in = new BufferedReader(
                 new InputStreamReader(Files.newInputStream(Paths.get("data/names.txt")), StandardCharsets.UTF_8))){
             String readed = in.readLine();
             while (readed!=null) {

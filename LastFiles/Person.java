@@ -62,6 +62,7 @@ public class Person extends Entity {
     Texture[] prop = new Texture[4];
     Texture[] hair = new Texture[4];
 
+    Texture[] downAnim, upAnim;
     public Person(Main m, float x, float y, float z) {
         super(m, x, y, z);
         cr = 1;
@@ -436,7 +437,6 @@ public class Person extends Entity {
     public float solidColor(Random random, float[] cp, float dark) { // Генерация цвета с ограничениями
         return minmax(random.nextInt((int) (cp[random.nextInt(cp.length)]*255f)) / 255f + dark, 0, 1);
     }
-
     public Texture colorize(Texture texture, float r, float g, float b) {
         if(!texture.getTextureData().isPrepared()){
             texture.getTextureData().prepare();
