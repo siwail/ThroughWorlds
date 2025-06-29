@@ -20,8 +20,8 @@ public class ThroughPlayer {
             t = 1;
             name = server.vipNames[server.random.nextInt(server.vipNames.length)];
         }
-        x = server.random.nextInt(4000)-2000;
-        y = server.random.nextInt(4000)-2000;
+        x = server.random.nextInt(400);
+        y = server.random.nextInt(400);
         z = server.random.nextInt(100);
         cr = server.random.nextInt(255)/255f;
         cg = server.random.nextInt(255)/255f;

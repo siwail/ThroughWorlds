@@ -4,35 +4,37 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Random;
 
 public class Main extends ApplicationAdapter {
     Random random = new Random(); // Создание генератора случайностей
-    SpriteBatch batch; // Создание отрисовщика картинок
-    ShapeRenderer drawer; // Создание отрисовщика фигур
+    SpriteBatchRubber batch; // Создание отрисовщика картинок
+    ShapeRendererRubber drawer; // Создание отрисовщика фигур
     FreeTypeFontGenerator generator;
     FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
     BitmapFont[] font = new BitmapFont[10];
     float cx = 0, cy = 0; // Позиция камеры
-    float cAccelerate = 0.6f; // Ускорение камеры
+    float cAccelerate = 0.5f; // Ускорение камеры
     float sunRotate = 100;
     float w, h; // Ширина, длина экрана
-    int FX = 1000, FY = 600, FZ = 6; // Размеры сетки локации (в клетках)
+    int FX = 1200, FY = 800, FZ = 6; // Размеры сетки локации (в клетках) (default 1000x600x6)
     int segments = 50;
     Field[][][] F = new Field[FX][FY][FZ]; // Сетка локации
     Texture[][][] S = new Texture[FX / segments][FY / segments][FZ]; // Текстуры локации
-    float s = 5; // Размер одной клетки в сетке
+    float s = 4; // Размер одной клетки в сетке
+    float sc = 1;
     Texture cat, shadow;
     Pixmap catPixmap;
     WaterPulse[] waterPulses = new WaterPulse[25];
@@ -50,72 +52,93 @@ public class Main extends ApplicationAdapter {
     float goW = 0, goA = 0, goS = 0, goD = 0;
     int pid;
     int pq = 50;
+    float waterState = 0;
+    float waterDir = 1;
     Person[] p = new Person[pq];
     boolean online = false;
     boolean initialized = false;
     float rotateAnim = 0;
     ThroughServerPacket initializationData;
-
     Texture[][] head = new Texture[1][4];
     Texture[][] hair = new Texture[1][4];
-    Texture[][] hat = new Texture[1][4];
-    Texture[][] beard = new Texture[1][4];
-    Texture[][] eyes = new Texture[1][4];
-
+    Texture[][] hat = new Texture[2][4];
+    Texture[][] beard = new Texture[2][4];
+    Texture[][] eyes = new Texture[2][4];
     Texture[][] prop = new Texture[1][4];
+    Texture[][] boot = new Texture[1][4];
+    Texture[][] gloves = new Texture[1][4];
+    HashMap<String, Animation> animations = new HashMap<String, Animation>();
 
-    Animation[] animations = new Animation[2];
     @Override
     public void create() {
-        animations[0] = new Animation("run");
-        for(int i=0;i<head.length;i++){
-            head[i][0] = new Texture("person/head_"+i+"_left.png");
-            head[i][1] = new Texture("person/head_"+i+".png");
-            head[i][2] = new Texture("person/head_"+i+"_back.png");
-            head[i][3] = new Texture("person/head_"+i+"_right.png");
+        Gdx.graphics.setVSync(true);
+        FileHandle[] saves = Gdx.files.local("assets/tools/saves/").list(); // Загрузка всех анимаций
+        Gdx.app.log("", "" + saves.length);
+
+        for (FileHandle save : saves) {
+            animations.put(save.name().replace(".txt", ""), new Animation(save.name()));
+
         }
-        for(int i=0;i<hair.length;i++){
-            hair[i][0] = new Texture("person/hair_"+i+"_left.png");
-            hair[i][1] = new Texture("person/hair_"+i+".png");
-            hair[i][2] = new Texture("person/hair_"+i+"_back.png");
-            hair[i][3] = new Texture("person/hair_"+i+"_right.png");
+        for (int i = 0; i < head.length; i++) {
+            head[i][0] = new Texture("person/head_" + i + "_left.png");
+            head[i][1] = new Texture("person/head_" + i + ".png");
+            head[i][2] = new Texture("person/head_" + i + "_back.png");
+            head[i][3] = new Texture("person/head_" + i + "_right.png");
         }
-        for(int i=0;i<hat.length;i++){
-            hat[i][0] = new Texture("person/hat_"+i+"_left.png");
-            hat[i][1] = new Texture("person/hat_"+i+".png");
-            hat[i][2] = new Texture("person/hat_"+i+"_back.png");
-            hat[i][3] = new Texture("person/hat_"+i+"_right.png");
+        for (int i = 0; i < hair.length; i++) {
+            hair[i][0] = new Texture("person/hair_" + i + "_left.png");
+            hair[i][1] = new Texture("person/hair_" + i + ".png");
+            hair[i][2] = new Texture("person/hair_" + i + "_back.png");
+            hair[i][3] = new Texture("person/hair_" + i + "_right.png");
         }
-        for(int i=0;i<beard.length;i++){
-            beard[i][0] = new Texture("person/beard_"+i+"_left.png");
-            beard[i][1] = new Texture("person/beard_"+i+".png");
-            beard[i][2] = new Texture("person/beard_"+i+"_back.png");
-            beard[i][3] = new Texture("person/beard_"+i+"_right.png");
+        for (int i = 0; i < hat.length; i++) {
+            hat[i][0] = new Texture("person/hat_" + i + "_left.png");
+            hat[i][1] = new Texture("person/hat_" + i + ".png");
+            hat[i][2] = new Texture("person/hat_" + i + "_back.png");
+            hat[i][3] = new Texture("person/hat_" + i + "_right.png");
         }
-        for(int i=0;i<eyes.length;i++){
-            eyes[i][0] = new Texture("person/eyes_"+i+"_left.png");
-            eyes[i][1] = new Texture("person/eyes_"+i+".png");
-            eyes[i][2] = new Texture("person/eyes_"+i+"_back.png");
-            eyes[i][3] = new Texture("person/eyes_"+i+"_right.png");
+        for (int i = 0; i < beard.length; i++) {
+            beard[i][0] = new Texture("person/beard_" + i + "_left.png");
+            beard[i][1] = new Texture("person/beard_" + i + ".png");
+            beard[i][2] = new Texture("person/beard_" + i + "_back.png");
+            beard[i][3] = new Texture("person/beard_" + i + "_right.png");
         }
-        for(int i=0;i<prop.length;i++){
-            prop[i][0] = new Texture("person/prop_"+i+"_left.png");
-            prop[i][1] = new Texture("person/prop_"+i+".png");
-            prop[i][2] = new Texture("person/prop_"+i+"_back.png");
-            prop[i][3] = new Texture("person/prop_"+i+"_right.png");
+        for (int i = 0; i < eyes.length; i++) {
+            eyes[i][0] = new Texture("person/eyes_" + i + "_left.png");
+            eyes[i][1] = new Texture("person/eyes_" + i + ".png");
+            eyes[i][2] = new Texture("person/eyes_" + i + "_back.png");
+            eyes[i][3] = new Texture("person/eyes_" + i + "_right.png");
+        }
+        for (int i = 0; i < prop.length; i++) {
+            prop[i][0] = new Texture("person/prop_" + i + "_left.png");
+            prop[i][1] = new Texture("person/prop_" + i + ".png");
+            prop[i][2] = new Texture("person/prop_" + i + "_back.png");
+            prop[i][3] = new Texture("person/prop_" + i + "_right.png");
+        }
+        for (int i = 0; i < boot.length; i++) {
+            boot[i][0] = new Texture("person/boot_" + i + "_left.png");
+            boot[i][1] = new Texture("person/boot_" + i + ".png");
+            boot[i][2] = new Texture("person/boot_" + i + "_back.png");
+            boot[i][3] = new Texture("person/boot_" + i + "_right.png");
+        }
+        for (int i = 0; i < gloves.length; i++) {
+            gloves[i][0] = new Texture("person/gloves_" + i + "_left.png");
+            gloves[i][1] = new Texture("person/gloves_" + i + ".png");
+            gloves[i][2] = new Texture("person/gloves_" + i + "_back.png");
+            gloves[i][3] = new Texture("person/gloves_" + i + "_right.png");
         }
 
         m = this;
-        batch = new SpriteBatch();
-        drawer = new ShapeRenderer();
+        batch = new SpriteBatchRubber(this);
+        drawer = new ShapeRendererRubber(this);
         w = Gdx.graphics.getWidth();
         h = Gdx.graphics.getHeight();
-        generator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/font.ttf"));
+        generator = new FreeTypeFontGenerator(Gdx.files.internal("fonts/font_2.ttf"));
         parameter.characters = "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890[]-=_+./#$%?!";
         for (int i = 0; i < font.length; i++) {
-            parameter.size = (int) (4f + i * 3.1f);
-            parameter.borderWidth = 1 + i * 0.2f;
-            parameter.borderColor = new Color(0, 0, 0, 1);
+            parameter.size = (int) (2.5f + i * 1.9f);
+            //parameter.borderWidth = 1 + i * 0.2f;
+            //parameter.borderColor = new Color(0, 0, 0, 1);
             parameter.color = new Color(1, 1, 1, 1);
             font[i] = generator.generateFont(parameter);
         }
@@ -135,16 +158,16 @@ public class Main extends ApplicationAdapter {
             });
             clientThread.start();
         } else {
-            seed = random.nextInt(1000);
+            seed = random.nextInt(10000);
             generateLocation();
             for (int i = 0; i < pq; i++) {
-                p[i] = new Person(m, random.nextInt(FX) * s, random.nextInt(FY) * s, random.nextInt(FZ) * s);
+                p[i] = new Person(m, random.nextInt(FX) * s, random.nextInt(FY) * s, random.nextInt(FZ) * s, i);
                 p[i].cr = random.nextInt(255) / 255f;
                 p[i].cg = random.nextInt(255) / 255f;
                 p[i].cb = random.nextInt(255) / 255f;
-                p[i].name = "MEGABOT #"+i;
+                p[i].name = "MEGABOT #" + i;
                 p[i].nameT = random.nextInt(2);
-                p[i].generate(random.nextInt(1000));
+                p[i].generate(random.nextInt(10000));
             }
             pid = 0;
             initialized = true;
@@ -309,13 +332,13 @@ public class Main extends ApplicationAdapter {
         seed = data.seed;
         generateLocation();
         for (int i = 0; i < pq; i++) {
-            p[i] = new Person(m, random.nextInt(FX) * s, random.nextInt(FY) * s, random.nextInt(FZ) * s);
+            p[i] = new Person(m, random.nextInt(FX) * s, random.nextInt(FY) * s, random.nextInt(FZ) * s, i);
             p[i].cr = 225;
             p[i].cg = 25;
             p[i].cb = 25;
         }
         for (int i = 0; i < data.x.length; i++) {
-            p[i] = new Person(m, data.x[i], data.y[i], data.z[i]);
+            p[i] = new Person(m, data.x[i], data.y[i], data.z[i], i);
             p[i].vx = data.vx[i];
             p[i].vy = data.vy[i];
             p[i].vz = data.vz[i];
@@ -341,7 +364,7 @@ public class Main extends ApplicationAdapter {
         float d = distance(x1, y1, x2, y2);
         int step = 8;
         for (int i = 0; i < d; i += step) {
-            generatePlast(random, ix+(random.nextInt(11)-5)/3f, iy+(random.nextInt(11)-5)/3f, s + (random.nextInt(100) - 50) / 60f, dark);
+            generatePlast(random, ix + (random.nextInt(11) - 5) / 3f, iy + (random.nextInt(11) - 5) / 3f, s + (random.nextInt(100) - 50) / 60f, dark);
             ix += vx * step;
             iy += vy * step;
         }
@@ -377,9 +400,9 @@ public class Main extends ApplicationAdapter {
                             F[ix][iy][iz].t = 1;
                         }
                     }
-                    F[ix][iy][iz].r = (r+g/4f+b/4f + 0.01f + dirtColor.r * (mode) + (random.nextInt(e)) / 200f) / (2.5f+dark);
-                    F[ix][iy][iz].g = (g+r/4f+b/4f + 0.01f + dirtColor.g * (mode) + (random.nextInt(e)) / 200f) / (2.5f+dark);
-                    F[ix][iy][iz].b = (b+r/4f+g/4f + 0.01f + dirtColor.b * (mode) + (random.nextInt(e)) / 200f) / (2.5f+dark);
+                    F[ix][iy][iz].r = (r + g / 4f + b / 4f + 0.01f + dirtColor.r * (mode) + (random.nextInt(e)) / 200f) / (2.5f + dark);
+                    F[ix][iy][iz].g = (g + r / 4f + b / 4f + 0.01f + dirtColor.g * (mode) + (random.nextInt(e)) / 200f) / (2.5f + dark);
+                    F[ix][iy][iz].b = (b + r / 4f + g / 4f + 0.01f + dirtColor.b * (mode) + (random.nextInt(e)) / 200f) / (2.5f + dark);
                 }
             }
         }
@@ -436,21 +459,21 @@ public class Main extends ApplicationAdapter {
             }
 
 
-            generatePlast(random, FX/2f, FY/2f, 24, -0.15f);
-            generateWay(random,  FX/2f, FY/2f, FX-FX/8f, FY / 2f, 12, -0.15f);
-            generateWay(random,  FX/2f, FY/2f, FX/8f, FY / 2f, 12, -0.15f);
-            generateWay(random,  FX/2f, FY/2f, FX/2f, FY-FY/8f, 12, -0.15f);
-            
+            generatePlast(random, FX / 2f, FY / 2f, 24, -0.15f);
+            generateWay(random, FX / 2f, FY / 2f, FX - FX / 8f, FY / 2f, 12, -0.15f);
+            generateWay(random, FX / 2f, FY / 2f, FX / 8f, FY / 2f, 12, -0.15f);
+            generateWay(random, FX / 2f, FY / 2f, FX / 2f, FY - FY / 8f, 12, -0.15f);
 
-            generatePlast(random, FX/2f, FY/2f, 21, 0.25f);
-            generateWay(random,  FX/2f, FY/2f, FX-FX/8f, FY / 2f, 9, 0.25f);
-            generateWay(random,  FX/2f, FY/2f, FX/8f, FY / 2f, 9, 0.25f);
-            generateWay(random,  FX/2f, FY/2f, FX/2f, FY-FY/8f, 9, 0.25f);
 
-            generatePlast(random, FX/2f, FY/2f, 18, 0.5f);
-            generateWay(random,  FX/2f, FY/2f, FX-FX/8f, FY / 2f, 7, 0.5f);
-            generateWay(random,  FX/2f, FY/2f, FX/8f, FY / 2f, 7, 0.5f);
-            generateWay(random,  FX/2f, FY/2f, FX/2f, FY-FY/8f, 7, 0.5f);
+            generatePlast(random, FX / 2f, FY / 2f, 21, 0.25f);
+            generateWay(random, FX / 2f, FY / 2f, FX - FX / 8f, FY / 2f, 9, 0.25f);
+            generateWay(random, FX / 2f, FY / 2f, FX / 8f, FY / 2f, 9, 0.25f);
+            generateWay(random, FX / 2f, FY / 2f, FX / 2f, FY - FY / 8f, 9, 0.25f);
+
+            generatePlast(random, FX / 2f, FY / 2f, 18, 0.5f);
+            generateWay(random, FX / 2f, FY / 2f, FX - FX / 8f, FY / 2f, 7, 0.5f);
+            generateWay(random, FX / 2f, FY / 2f, FX / 8f, FY / 2f, 7, 0.5f);
+            generateWay(random, FX / 2f, FY / 2f, FX / 2f, FY - FY / 8f, 7, 0.5f);
 
 
             for (int iz = 0; iz < FZ; iz++) {
@@ -468,7 +491,7 @@ public class Main extends ApplicationAdapter {
                                     pixmap.setColor(f.r, f.g, f.b, 1);
                                     pixmap.drawPixel(ix - x * segments, segments - 1 - (iy - y * segments));
                                 } else {
-                                    if (iz == (int)wetRate) {
+                                    if (iz == (int) wetRate) {
                                         F[ix][iy][iz].t = 2;
                                         F[ix][iy][iz].m = 0.5f;
                                         F[ix][iy][iz].a = waterColor.a;
@@ -514,14 +537,16 @@ public class Main extends ApplicationAdapter {
         }
         //
     }
+
     @Override
     public void render() {
-        if (!initialized) {
+        if (!initialized && online) {
             if (initializationData != null) {
                 initialization();
             }
             return;
         }
+
         rotateAnim += 2f;
         if (rotateAnim > 360f) {
             rotateAnim -= 360f;
@@ -533,9 +558,20 @@ public class Main extends ApplicationAdapter {
             sunRotate -= 360;
         }
 
-        cx += (p[pid].x - w / 2f - cx) / 10f;
-        cy += (p[pid].y - h / 2f - cy) / 10f;
-
+        cx += (p[pid].x - w / 2f / sc - cx) / 10f;
+        cy += (p[pid].y - h / 2f / sc - cy) / 10f;
+        if(cx<0){
+            cx=0;
+        }
+        if(cy<0){
+            cy=0;
+        }
+        if(cx>FX*s-w/sc){
+            cx=FX*s-w/sc;
+        }
+        if(cy>FY*s-h/sc){
+            cy=FY*s-h/sc;
+        }
         float fakeRotate = 195;
         float sunX = (cx + w / 2) / s; // Координата солнца по X
         float sunY = FY - (cy + h / 2) / s + sin(fakeRotate) * (h / s); // Координата солнца по Y (Зависит от текущего поворота)
@@ -555,26 +591,26 @@ public class Main extends ApplicationAdapter {
         Texture waterTexture = null, dirtTexture = null; // Заранее объявляем текстуру воды, текстуру земли
         int minX = Math.max((int) (cx / s), 0);
         int minY = Math.max((int) (cy / s), 0);
-        int maxX = Math.min((int) ((cx + w) / s), FX - 1);
-        int maxY = Math.min((int) ((cy + h) / s), FY - 1);
+        int maxX = Math.min((int) ((cx + w / sc) / s), FX - 1);
+        int maxY = Math.min((int) ((cy + h / sc) / s), FY - 1);
         for (int iz = 0; iz < FZ; iz++) { // Перебор уровней земли
-            if (iz == (int)wetRate) { // Выполняется в том случае, если текущий уровень совпадает с уровнем воды
-                for(int i=0;i<pq;i++){ // Перебираем и отрисовываем отражения персонажей
+            if (iz == (int) wetRate) { // Выполняется в том случае, если текущий уровень совпадает с уровнем воды
+                for (int i = 0; i < pq; i++) { // Перебираем и отрисовываем отражения персонажей
                     p[i].drawMirror();
                 }
                 for (int ix = minX; ix < maxX; ix++) {
                     for (int fy = minY; fy < maxY; fy++) {
                         int iy = fy;
-                        if (F[ix][iy][iz].t== 2) { // Если на данном пикселе расположена вода F[ix][iy][iz].t == 2
+                        if (F[ix][iy][iz].t == 2) { // Если на данном пикселе расположена вода F[ix][iy][iz].t == 2
                             Field f = F[ix][iy][iz];
                             waterSplash = 0;
                             waterR = 0;
                             waterG = 0;
                             waterB = 0;
-                            float scale = +sin(sunRotate * 10 + ix + iy) / 50f;
+                            float scale = +sin(sunRotate * 10 + ix + iy) / 45f;
                             waterPixmap.setColor((f.r + waterR) + waterSplash + scale, (f.g + waterG) + waterSplash + scale, (f.b + waterB) + waterSplash + scale, f.a);
                             //waterPixmap.setColor(1,1,1,1);
-                            waterPixmap.drawPixel(ix, FY-iy-1); // Отрисовываем результат
+                            waterPixmap.drawPixel(ix, FY - iy - 1); // Отрисовываем результат
                         }
                     }
                 }
@@ -638,6 +674,9 @@ public class Main extends ApplicationAdapter {
         }
         dirtTexture = new Texture(dirtPixmap); // Создаём текстуру земли на основе пиксмапа
         batch.draw(dirtTexture, -cx, -cy, FX * s, FY * s); // Отрисовываем текстуру земли.
+        for (int i = 0; i < pq; i += 1) {
+            p[i].drawShadow();
+        }
         for (int i = 0; i < pq; i += 1) {
             p[i].draw();
         }
@@ -732,6 +771,7 @@ public class Main extends ApplicationAdapter {
             }
         }
     }
+
     public void setFlower(float x, float y) { // Размещает цветок, если есть свободный
         int index = -1;
         for (int i = 0; i < flowers.length; i += 1) {
@@ -751,6 +791,19 @@ public class Main extends ApplicationAdapter {
                 flowers[index].tt[it] = random.nextInt(11) - 5;
                 flowers[index].ty[it] = it * s;
             }
+        }
+    }
+    public void rectLine(float x1, float y1, float x2, float y2, float s) {
+        float ix = x1;
+        float iy = y1;
+        float size = 4;
+        float d = m.distance(x1, y1, x2, y2);
+        float vx = (x2 - x1) / d;
+        float vy = (y2 - y1) / d;
+        for (int id = 0; id < d; id++) {
+            ix += vx;
+            iy += vy;
+            m.drawer.rect((int) (ix / size) * size, (int) (iy / size) * size, size, size);
         }
     }
     public boolean hit(float x1, float y1, float x2, float y2, float r1, float r2) { // Проверяет, соприкасаются ли окружности
